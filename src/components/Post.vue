@@ -4,16 +4,25 @@
       <label for="userSelect">Pilih Pengguna:</label>
       <select v-model="selectedUserId" @change="fetchPosts">
         <option v-for="user in users" :key="user.id" :value="user.id">
-          {{ user.name }}
+          <slot name="user-name" :user="user">
+            {{ user.name }}
+          </slot>
         </option>
       </select>
     </div>
     <div v-if="posts.length">
-      <h3>Postingan oleh {{ getUserName(selectedUserId) }}</h3>
+      <h3>
+        Postingan oleh
+        <slot name="user-header" :user="getUser(selectedUserId)">{{
+          getUser(selectedUserId).name
+        }}</slot>
+      </h3>
       <ul>
         <li v-for="post in posts" :key="post.id">
-          <h4>{{ post.title }}</h4>
-          <p>{{ post.body }}</p>
+          <slot name="post" :post="post">
+            <h4>{{ post.title }}</h4>
+            <p>{{ post.body }}</p>
+          </slot>
         </li>
       </ul>
     </div>
@@ -22,24 +31,23 @@
 
 <script>
 export default {
+  props: {
+    users: {
+      type: Array,
+      required: true,
+    },
+    initialPosts: {
+      type: Array,
+      default: () => [],
+    },
+  },
   data() {
     return {
-      users: [],
-      posts: [],
+      posts: this.initialPosts,
       selectedUserId: null,
     };
   },
-  mounted() {
-    this.fetchUsers();
-  },
   methods: {
-    fetchUsers() {
-      fetch("https://jsonplaceholder.typicode.com/users")
-        .then((response) => response.json())
-        .then((data) => {
-          this.users = data;
-        });
-    },
     fetchPosts() {
       if (this.selectedUserId) {
         fetch(
@@ -51,9 +59,10 @@ export default {
           });
       }
     },
-    getUserName(userId) {
-      const user = this.users.find((user) => user.id === userId);
-      return user ? user.name : "Unknown";
+    getUser(userId) {
+      return (
+        this.users.find((user) => user.id === userId) || { name: "Unknown" }
+      );
     },
   },
 };
