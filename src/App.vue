@@ -1,14 +1,20 @@
 <template>
-  <div id="nav" class="navbar">
-    <h1>TUGAS VUE</h1>
-    <ul>
-      <li><router-link to="/">Home</router-link></li>
-      <li><router-link to="/Post">Post</router-link></li>
-      <li><router-link to="/todo">Todo List</router-link></li>
-    </ul>
+  <div id="app">
+    <Navbar />
+    <router-view />
   </div>
-  <router-view />
 </template>
+
+<script>
+import Navbar from './components/Navbar.vue';
+
+export default {
+  name: 'App',
+  components: {
+    Navbar
+  }
+}
+</script>
 
 <style>
 #nav {

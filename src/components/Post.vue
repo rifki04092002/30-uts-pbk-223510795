@@ -1,28 +1,19 @@
 <template>
-  <div class="Post">
-    <div>
+  <div class="post-container">
+    <div class="user-select-container">
       <label for="userSelect">Pilih Pengguna:</label>
-      <select v-model="selectedUserId" @change="fetchPosts">
+      <select id="userSelect" v-model="selectedUserId" @change="fetchPosts" class="user-select">
         <option v-for="user in users" :key="user.id" :value="user.id">
-          <slot name="user-name" :user="user">
-            {{ user.name }}
-          </slot>
+          {{ user.name }}
         </option>
       </select>
     </div>
-    <div v-if="posts.length">
-      <h3>
-        Postingan oleh
-        <slot name="user-header" :user="getUser(selectedUserId)">{{
-          getUser(selectedUserId).name
-        }}</slot>
-      </h3>
-      <ul>
-        <li v-for="post in posts" :key="post.id">
-          <slot name="post" :post="post">
-            <h4>{{ post.title }}</h4>
-            <p>{{ post.body }}</p>
-          </slot>
+    <div v-if="posts.length" class="posts-container">
+      <h3 class="posts-title">Postingan oleh {{ getUser(selectedUserId).name }}</h3>
+      <ul class="posts-list">
+        <li v-for="post in posts" :key="post.id" class="post-item">
+          <h4 class="post-title">{{ post.title }}</h4>
+          <p class="post-body">{{ post.body }}</p>
         </li>
       </ul>
     </div>
@@ -31,25 +22,27 @@
 
 <script>
 export default {
-  props: {
-    users: {
-      type: Array,
-      required: true,
-    },
-    initialPosts: {
-      type: Array,
-      default: () => [],
-    },
-  },
   data() {
     return {
-      posts: this.initialPosts,
+      users: [],
+      posts: [],
       selectedUserId: null,
     };
   },
   methods: {
+    fetchUsers() {
+      fetch("https://jsonplaceholder.typicode.com/users")
+        .then((response) => response.json())
+        .then((data) => {
+          this.users = data;
+          if (this.users.length > 0) {
+            this.selectedUserId = this.users[0].id;
+            this.fetchPosts();
+          }
+        });
+    },
     fetchPosts() {
-      if (this.selectedUserId) {
+      if (this.selectedUserId !== null) {
         fetch(
           `https://jsonplaceholder.typicode.com/posts?userId=${this.selectedUserId}`
         )
@@ -65,18 +58,82 @@ export default {
       );
     },
   },
+  watch: {
+    selectedUserId() {
+      this.fetchPosts();
+    },
+  },
+  created() {
+    this.fetchUsers();
+  },
 };
 </script>
 
 <style scoped>
-.Post {
-  text-align: left;
-  margin: 30px;
-  color: rgb(252, 251, 251);
+.post-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.about h2 {
+.user-select-container {
+  margin-bottom: 20px;
+}
+
+label {
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+.user-select {
+  padding: 8px;
+  font-size: 16px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+}
+
+.posts-container {
+  margin-top: 20px;
+}
+
+.posts-title {
+  font-size: 1.5em;
+  color: #333;
   text-align: center;
-  color: rgb(252, 251, 251);
+  margin-bottom: 20px;
+}
+
+.posts-list {
+  list-style: none;
+  padding: 0;
+}
+
+.post-item {
+  background-color: #fff;
+  padding: 15px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s;
+}
+
+.post-item:hover {
+  transform: scale(1.02);
+}
+
+.post-title {
+  margin: 0;
+  font-size: 1.2em;
+  color: #555;
+}
+
+.post-body {
+  margin: 10px 0 0;
+  font-size: 1em;
+  color: #666;
 }
 </style>
